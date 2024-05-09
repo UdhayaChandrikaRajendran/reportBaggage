@@ -1,27 +1,34 @@
 import { Component, Injectable, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject, map, takeUntil, takeWhile } from 'rxjs';
+import { Observable, Subject, map, observable, takeUntil, takeWhile } from 'rxjs';
 import { HttpClientModule } from '@angular/common/http';
-import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
+interface UserItemArray {
+  quantity: number;
+  item: string;
+  cost: number;
+}
 interface IUser {
-  originFrom: string;
-  nickname: string;
-  email: string;
-  password: string;
-  showPassword: boolean;
-  travelDate: Date;
-
+  date: Date;
+  origin: string;
+  departure: string;
+  baggage: string;
+  currency: string;
+  items: UserItemArray[];
+  claim: number;
 }
 @Injectable()
-export class AirportService {
+export class DataService {
   constructor(private http: HttpClient) {
 
   }
   getLocations(): Observable<any> {
     return this.http.get("../assets/airports.json");
+  }
+  getcurrencyFormat(): Observable<any> {
+    return this.http.get("../assets/currencyFormat.json");
   }
 }
 @Component({
@@ -30,105 +37,103 @@ export class AirportService {
   imports: [RouterOutlet, ReactiveFormsModule, HttpClientModule, CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  providers: [AirportService, HttpClient],
+  providers: [DataService, HttpClient],
 })
 export class AppComponent implements OnInit {
   title = 'reportBaggageUi';
   reactiveForm!: FormGroup;
-  user: IUser;
+  user!: IUser;
   unSubscribed$ = new Subject<void>();
   airportData: any;
-  constructor(private airportService: AirportService) {
-    this.user = {} as IUser;
-
+  currencyFormat$!: Observable<string[]>;
+  formSubmit = false;
+  totalAmount = 0;
+  constructor(private dataService: DataService, private formBuilder: FormBuilder) {
+    // this.user = {} as IUser;
+    //this.user.totalClaim = 0;
   }
 
   ngOnInit(): void {
-    // this.airportData = this.airportService.getLocations().pipe(takeUntil(this.unSubscribed$)).subscribe(
-    //   response => {
-    //     const keys = Object.keys(response);
-    //     return keys.map(key => response[key]);
-    //     this.airportData = response;
-    //     console.log(response);
-    //   }
-    // );
-    this.airportData = this.airportService.getLocations().pipe(
+
+    this.airportData = this.dataService.getLocations().pipe(
       map(response => {
         const keys = Object.keys(response);
         return keys.map(key => response[key]);
-        this.airportData = response;
-        console.log(response);
+      })
+    );
+    this.currencyFormat$ = this.dataService.getcurrencyFormat().pipe(
+      map(response => {
+        return Object.keys(response);
       })
     );
 
-    console.log(this.airportData);
     this.reactiveForm = new FormGroup({
-      requestdate: new FormControl(this.user.travelDate),
-      originFrom: new FormControl(this.user.originFrom, [
+      date: new FormControl(''),
+      origin: new FormControl('', [
         Validators.required,
-        Validators.minLength(1),
-        Validators.maxLength(250),
+
       ]),
-      nickname: new FormControl(this.user.nickname, [
-        Validators.maxLength(10),
+      departure: new FormControl('', [
+        Validators.required
+
       ]),
-      email: new FormControl(this.user.email, [
-        Validators.required,
-        Validators.minLength(1),
-        Validators.maxLength(250),
-        //emailValidator(),
-      ]),
-      password: new FormControl(this.user.password, [
-        Validators.required,
-        Validators.minLength(15),
-      ]),
+      baggage: new FormControl('', []),
+      currency: new FormControl('', [
+        Validators.required]),
+      items: new FormArray([]),
+
+      claim: new FormControl(''),
+
+    });
+    this.addItem();
+  }
+  get items() {
+    return <FormArray>this.reactiveForm.get('items');
+  }
+  calculate_cost(index: number) {
+    this.totalAmount = this.items.value.reduce((acc: any, curr: any) => {
+      acc += (curr.cost || 0);
+      return acc;
+    }, 0);
+    this.reactiveForm.get('claim')!.setValue(this.totalAmount);
+  }
+  addItem() {
+    let newSet = this.getUserForm();
+    this.items.push(newSet);
+  }
+
+  removeItem(i: number) {
+    this.items.removeAt(i);
+  }
+  getUserForm() {
+    return this.formBuilder.group({
+      item: [''],
+      quantity: [''],
+      cost: ['']
     });
   }
-  get requestdate() {
-    return this.reactiveForm.get('requestdate')?.patchValue(this.formatDate(new Date()));
-  }
-
-  get name() {
-    return this.reactiveForm.get('name')!;
-  }
-
-  get nickname() {
-    return this.reactiveForm.get('nickname')!;
-  }
-
-  get email() {
-    return this.reactiveForm.get('email')!;
-  }
-
-  get password() {
-    return this.reactiveForm.get('password')!;
-  }
-  private formatDate(date: Date) {
-    const d = new Date(date);
-    let month = '' + (d.getMonth() + 1);
-    let day = '' + d.getDate();
-    const year = d.getFullYear();
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
-    return [year, month, day].join('-');
+  isObject(values: any) {
+    console.log(values);
+    if (!Array.isArray(values)) {
+      return false;
+    }
+    else {
+      return true;
+    }
   }
   public validate(): void {
-    if (this.reactiveForm.invalid) {
+    if (this.reactiveForm.valid) {
+      this.formSubmit = true;
+      this.user = this.reactiveForm.value;
+      console.log(this.user);
       for (const control of Object.keys(this.reactiveForm.controls)) {
         this.reactiveForm.controls[control].markAsTouched();
+
       }
       return;
     }
 
-    this.user = this.reactiveForm.value;
 
-    console.info('Name:', this.user.originFrom);
-    console.info('Nickname:', this.user.nickname);
-    console.info('Email:', this.user.email);
-    console.info('Password:', this.user.password);
   }
-  ngOnDestroy(): void {
-    this.unSubscribed$.next();
-    this.unSubscribed$.complete();
-  }
+
 }

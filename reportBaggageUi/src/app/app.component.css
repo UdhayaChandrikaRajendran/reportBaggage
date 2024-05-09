@@ -1,24 +1,24 @@
- 
- 
-
- *{
+ * {
    margin: 0;
    padding: 0;
    box-sizing: border-box;
-   font-family: 'Poppins',sans-serif;
+   font-family: 'Poppins', sans-serif;
  }
- ::selection{
+
+ ::selection {
    color: #000;
    background: #fff;
  }
- nav{
+
+ nav {
    position: fixed;
    background: #1b1b1b;
    width: 100%;
    padding: 10px 0;
    z-index: 12;
  }
- nav .menu{
+
+ nav .menu {
    max-width: 1250px;
    margin: auto;
    display: flex;
@@ -26,23 +26,28 @@
    justify-content: space-between;
    padding: 0 20px;
  }
- .menu .logo a{
+
+ .menu .logo a {
    text-decoration: none;
    color: #fff;
    font-size: 35px;
    font-weight: 600;
  }
- .menu ul{
+
+ .menu ul {
    display: inline-flex;
  }
- .menu ul li{
+
+ .menu ul li {
    list-style: none;
    margin-left: 7px;
  }
- .menu ul li:first-child{
+
+ .menu ul li:first-child {
    margin-left: 0px;
  }
- .menu ul li a{
+
+ .menu ul li a {
    text-decoration: none;
    color: #fff;
    font-size: 18px;
@@ -51,26 +56,32 @@
    border-radius: 5px;
    transition: all 0.3s ease;
  }
- .menu ul li a:hover{
+
+ .menu ul li a:hover {
    background: #fff;
    color: black;
  }
- .img{
+
+ .img {
    width: 100%;
    height: 100vh;
    background-size: cover;
    background-position: center;
    position: relative;
  }
- .img::before{
+
+ .img::before {
    content: '';
    position: absolute;
    height: 100%;
    width: 100%;
-   background: rgba(0, 0, 0, 0.4);
+
  }
- .center{
+
+ .center {
    position: absolute;
+   background: rgba(0, 0, 0, 0.4);
+
    top: 52%;
    left: 50%;
    transform: translate(-50%, -50%);
@@ -78,20 +89,24 @@
    padding: 0 20px;
    text-align: center;
  }
- .center .title{
+
+ .center .title {
    color: #fff;
    font-size: 55px;
    font-weight: 600;
  }
- .center .sub_title{
+
+ .center .sub_title {
    color: #fff;
    font-size: 52px;
    font-weight: 600;
  }
- .center .btns{
+
+ .center .btns {
    margin-top: 20px;
  }
- .center .btns button{
+
+ .center .btns button {
    height: 55px;
    width: 170px;
    border-radius: 5px;
@@ -104,20 +119,34 @@
    cursor: pointer;
    outline: none;
    transition: all 0.3s ease;
+
  }
- .center .btns button:first-child{
+
+ .center .btns button:first-child {
    color: #fff;
    background: none;
  }
- .btns button:first-child:hover{
+
+ .btns button:first-child:hover {
    background: white;
    color: black;
  }
- .center .btns button:last-child{
+
+ .center .btns button:last-child {
    background: white;
    color: black;
  }
- 
+
+ .span1 {
+   display: inline-block;
+   margin: 10px;
+
+ }
+
+ .btnsItem {
+   margin: 10px;
+ }
+
  /* :host {
     --bright-blue: oklch(51.01% 0.274 263.83);
     --electric-violet: oklch(53.18% 0.28 296.97);
