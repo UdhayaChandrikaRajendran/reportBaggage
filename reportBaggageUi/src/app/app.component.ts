@@ -7,18 +7,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { IUser, baggageDetails, setBaggageInfo } from './reducers';
 import { Store } from '@ngrx/store';
-@Injectable()
-export class DataService {
-  constructor(private http: HttpClient) {
+import { DataService } from './data-service.service';
 
-  }
-  getLocations(): Observable<any> {
-    return this.http.get("../assets/airports.json");
-  }
-  getcurrencyFormat(): Observable<any> {
-    return this.http.get("../assets/currencyFormat.json");
-  }
-}
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -109,7 +99,6 @@ export class AppComponent implements OnInit {
     });
   }
   isObject(values: any) {
-    console.log(values);
     if (!Array.isArray(values)) {
       return false;
     }
@@ -127,9 +116,7 @@ export class AppComponent implements OnInit {
       this.formValid = true;
       this.user = this.reactiveForm.value;
       this.store.dispatch(setBaggageInfo({ model: this.user }));
-      console.log(this.user);
-      this.reactiveForm.getError.toString();
-      return;
+       return;
     }
   }
 
