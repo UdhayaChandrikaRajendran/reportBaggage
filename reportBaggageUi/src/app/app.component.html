@@ -13,38 +13,42 @@
       </ul>
     </div>
   </nav>
-  <div class="img"></div>
-
   <div class="center divmain">
     <div class="title">Passenger travel details</div>
+
     <div class="container-fluid py-3">
       <div class="row justify-content-center my-5">
         <div class="col-4">
-          <form *ngIf=!formSubmit [formGroup]="reactiveForm" #form="ngForm">
+          <form *ngIf=!this.formValid [formGroup]="reactiveForm" #form="ngForm">
             <div class="row">
               <div class="col mb-2">
-                <label for="date" class="form-label">Travel date:</label>
-                <input id="requestdate" type="date" class="form-control" formControlName="date" required
-                  minlength="1" maxlength="250" class="form-control form-control-sm" />
+                <div class="error" *ngIf="this.formSubmit && !this.formValid " color="red">
+                  <span *ngFor="let error of formErrror" color="red"> *{{error}} <br></span>
+                </div>
+                <!-- <div *ngIf="reactiveForm.control['date'].errors?.['required']">Date is required.</div> -->
+                <label for=" date" class="form-label">Travel date:</label>
+              
+                <input id="requestdate" type="date" class="form-control" formControlName="date" required minlength="1"
+                  maxlength="250" class="form-control form-control-sm" [max]="maxDate | date:'yyyy-MM-dd'" />
               </div>
             </div>
             <div class="row">
               <div class="col mb-2">
                 <label for="name" class="form-label">Origin From:</label>
-                <input list="browsers1" name="browser1" id="browser1" formControlName="origin"
+                <input list="browsers1" name="browser1" formControlName="origin" autocomplete="on"
                   class="form-control form-control-sm">
                 <datalist id="browsers1">
-                  <option *ngFor="let item of airportData | async" [value]="item.airport.name">
+                  <option *ngFor="let item of airportData$ | async" [value]="item.airport.name">
                 </datalist>
               </div>
             </div>
             <div class="row">
               <div class="col mb-2">
                 <label for="name" class="form-label">Departure to:</label>
-                <input list="browsers" name="browser" id="browser" formControlName="departure"
+                <input list="browsers" name="browser" formControlName="departure" oninput="validity.valid||(value='');"
                   class="form-control form-control-sm">
                 <datalist id="browsers">
-                  <option *ngFor="let item of airportData | async" [value]="item.airport.name">
+                  <option *ngFor="let item of airportData$ | async" [value]="item.airport.name">
                 </datalist>
               </div>
             </div>
@@ -63,14 +67,14 @@
                   <div class="span12" style="margin-left: 40px;">Description of damage or missing property
                     <div class="span1" style="margin-left:0px;"> <label class="control-label" for="currency1">Currency:
                       </label>
-                      <input list="currency" name="currency1" id="currency1" formControlName="currency"
-                        class="form-control form-control-sm">
-                      <datalist id="currency">
-                        <option *ngFor="let item of currencyFormat$ | async" [value]="item">
-                      </datalist>
                     </div>
                     <div style="color: red; font-size: 15px; font-weight: bold;"> *Please declare the cost in the same
-                      currency.</div>
+                      currency.
+                      <select name="currency1" id="currency1" formControlName="currency"
+                        class="form-control form-control-sm">
+                        <option *ngFor="let item of currencyFormat$ | async" [value]="item">{{item}}</option>
+                      </select>
+                    </div>
                   </div>
                 </label>
 
@@ -84,13 +88,13 @@
                     </div>
 
                     <div class="span1"> <label class="control-label" for="cost1">Cost: </label>
-                      <input id="cost1" type="number" class="form-control" name="cost1" (change)="calculate_cost(i)"
+                      <input id="cost1" type="number" class="form-control" name="cost1" (change)="calculate_cost()"
                         min="0" [formControl]="$any(u.controls['cost'])"
                         oninput="value == '' ? value = 0 : value < 0 ? value = value * -1 : false">
 
                     </div>
-                    <button class="btnsItem" *ngIf="$any(items.controls).length>1"
-                      (click)="removeItem(i)">Delete item</button>
+                    <button class="btnsItem" *ngIf="$any(items.controls).length>1" (click)="removeItem(i)">Delete
+                      item</button>
                     <button type="button" (click)="addItem()">Add new item</button>
                   </div>
 
@@ -114,8 +118,9 @@
               </div>
             </div>
           </form>
-          <table *ngIf=formSubmit class="table">
-
+        </div>
+        <div>
+          <table *ngIf=formValid class="table">
             <thead>
               <tr>
                 <th class="text-left" *ngFor="let item of user | keyvalue">
@@ -131,28 +136,28 @@
 
                     <table class="table">
                       <thead>
-                        <tr >
+                        <tr>
                           <th class="text-left" *ngFor="let item1 of user.items[0] | keyvalue">
                             {{item1.key | uppercase}}
                           </th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr *ngFor="let item of user.items" >
+                        <tr *ngFor="let item of user.items">
                           <td *ngFor="let item1 of item | keyvalue">
-                         {{item1.value}} 
-                                 
+                            {{item1.value}}
+
                           </td>
                         </tr>
-          
+
                       </tbody>
                     </table>
 
 
                   </span>
                   <ng-template #printVal>
-                  <span>  {{item.value}} </span>
-                  </ng-template >
+                    <span> {{item.value}} </span>
+                  </ng-template>
 
                 </td>
               </tr>
@@ -164,6 +169,3 @@
     </div>
   </div>
 </main>
-
-
-<router-outlet />

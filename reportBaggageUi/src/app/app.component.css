@@ -10,8 +10,13 @@
    background: #fff;
  }
 
+ .error {
+   color: #8B0000;
+   font-size: 15px;
+   font-weight: bold;
+ }
+
  nav {
-   position: fixed;
    background: #1b1b1b;
    width: 100%;
    padding: 10px 0;
@@ -79,12 +84,12 @@
  }
 
  .center {
-   position: absolute;
+
    background: rgba(0, 0, 0, 0.4);
 
    top: 52%;
    left: 50%;
-   transform: translate(-50%, -50%);
+
    width: 100%;
    padding: 0 20px;
    text-align: center;

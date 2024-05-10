@@ -1,24 +1,12 @@
 import { Component, Injectable, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject, map, observable, takeUntil, takeWhile } from 'rxjs';
 import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-interface UserItemArray {
-  quantity: number;
-  item: string;
-  cost: number;
-}
-interface IUser {
-  date: Date;
-  origin: string;
-  departure: string;
-  baggage: string;
-  currency: string;
-  items: UserItemArray[];
-  claim: number;
-}
+import { IUser, baggageDetails, setBaggageInfo } from './reducers';
+import { Store } from '@ngrx/store';
 @Injectable()
 export class DataService {
   constructor(private http: HttpClient) {
@@ -43,54 +31,62 @@ export class AppComponent implements OnInit {
   title = 'reportBaggageUi';
   reactiveForm!: FormGroup;
   user!: IUser;
+  userData$!: Observable<IUser>;
   unSubscribed$ = new Subject<void>();
-  airportData: any;
+  airportData$!: Observable<any>;;
   currencyFormat$!: Observable<string[]>;
   formSubmit = false;
   totalAmount = 0;
-  constructor(private dataService: DataService, private formBuilder: FormBuilder) {
-    // this.user = {} as IUser;
-    //this.user.totalClaim = 0;
-  }
+  infos: string[] = [''];
+  maxDate = new Date();
+  formErrror: string[] = [];
+  formValid: boolean = false;
+  constructor(private dataService: DataService, private formBuilder: FormBuilder, public store: Store) { }
+
 
   ngOnInit(): void {
+    this.initializeData();
 
-    this.airportData = this.dataService.getLocations().pipe(
+    this.reactiveForm = new FormGroup({
+      date: new FormControl('', [Validators.required]),
+      origin: new FormControl('', [Validators.required]),
+      departure: new FormControl('', [Validators.required]),
+      baggage: new FormControl('', [Validators.required]),
+      currency: new FormControl('', [Validators.required]),
+      items: new FormArray([], [Validators.required]),
+      claim: new FormControl('', [Validators.required])
+    },
+      {
+        validators: [this.compareOriginDeparture]
+      });
+    this.addItem();
+  }
+  initializeData() {
+    this.userData$ = this.store.select(baggageDetails);
+    this.airportData$ = this.dataService.getLocations().pipe(
       map(response => {
         const keys = Object.keys(response);
         return keys.map(key => response[key]);
       })
     );
+
+    this.dataService.getLocations().pipe(takeUntil(this.unSubscribed$)).subscribe(
+      response => {
+        const keys = Object.keys(response);
+        let locationList = keys.map(key => response[key]);
+        this.infos = locationList.map(element => element.airport.name);
+        console.log(this.infos);
+      });
     this.currencyFormat$ = this.dataService.getcurrencyFormat().pipe(
       map(response => {
         return Object.keys(response);
       })
     );
-
-    this.reactiveForm = new FormGroup({
-      date: new FormControl(''),
-      origin: new FormControl('', [
-        Validators.required,
-
-      ]),
-      departure: new FormControl('', [
-        Validators.required
-
-      ]),
-      baggage: new FormControl('', []),
-      currency: new FormControl('', [
-        Validators.required]),
-      items: new FormArray([]),
-
-      claim: new FormControl(''),
-
-    });
-    this.addItem();
   }
   get items() {
     return <FormArray>this.reactiveForm.get('items');
   }
-  calculate_cost(index: number) {
+  calculate_cost() {
     this.totalAmount = this.items.value.reduce((acc: any, curr: any) => {
       acc += (curr.cost || 0);
       return acc;
@@ -107,9 +103,9 @@ export class AppComponent implements OnInit {
   }
   getUserForm() {
     return this.formBuilder.group({
-      item: [''],
-      quantity: [''],
-      cost: ['']
+      item: new FormControl('', [Validators.required]),
+      quantity: new FormControl('', [Validators.required]),
+      cost: new FormControl('', [Validators.required])
     });
   }
   isObject(values: any) {
@@ -122,18 +118,63 @@ export class AppComponent implements OnInit {
     }
   }
   public validate(): void {
+    this.formErrror = [];
+    this.showMandatoryError();
+    this.compareLocationWithData(this.reactiveForm);
+    this.formSubmit = true;
+    if (this.reactiveForm.errors && this.reactiveForm.errors['samelocation']) this.formErrror?.push('select Different origin and Departure')
     if (this.reactiveForm.valid) {
-      this.formSubmit = true;
+      this.formValid = true;
       this.user = this.reactiveForm.value;
+      this.store.dispatch(setBaggageInfo({ model: this.user }));
       console.log(this.user);
-      for (const control of Object.keys(this.reactiveForm.controls)) {
-        this.reactiveForm.controls[control].markAsTouched();
-
-      }
+      this.reactiveForm.getError.toString();
       return;
+    }
+  }
+
+  showMandatoryError() {
+    Object.keys(this.reactiveForm.controls).forEach(key => {
+
+      const controlErrors = this.reactiveForm.get(key)?.errors;
+      if (controlErrors != null) {
+        Object.keys(controlErrors).forEach(keyError => {
+          const showMessage = key + " is " + keyError
+          this.formErrror.push(showMessage)
+          //this.fieldError = this.errors[0]
+        });
+      }
+    });
+
+  }
+  compareLocationWithData(control: AbstractControl): void {
+    const origin = control.get('origin');
+    const departure = control.get('departure');
+
+    if (!this.infos?.includes(origin?.value)) {
+      this.reactiveForm.setErrors({ 'select correct Origin': true });
+      this.formErrror?.push('select correct Origin');
+    }
+
+
+    if (!this.infos?.includes(departure?.value)) {
+      this.formErrror?.push('select correct departure');
+      this.reactiveForm.setErrors({ 'select correct departure': true });
+
     }
 
 
   }
-
+  compareOriginDeparture(control: AbstractControl): ValidationErrors | null {
+    const origin = control.get('origin');
+    const departure = control.get('departure');
+    if (origin?.value === departure?.value) {
+      return { 'samelocation': true };
+    }
+    return null;
+  }
+  ngOnDestroy(): void {
+    this.unSubscribed$.next();
+    this.unSubscribed$.complete();
+  }
 }
