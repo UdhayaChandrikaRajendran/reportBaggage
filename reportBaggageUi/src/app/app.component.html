@@ -23,7 +23,7 @@
             <div class="row">
               <div class="col mb-2">
                 <div class="error" *ngIf="this.formSubmit && !this.formValid " color="red">
-                  <span *ngFor="let error of formErrror" color="red"> *{{error}} <br></span>
+                  <span *ngFor="let error of formErrror" color="red"> *{{error  |titlecase}} <br></span>
                 </div>
                 <!-- <div *ngIf="reactiveForm.control['date'].errors?.['required']">Date is required.</div> -->
                 <label for=" date" class="form-label">Travel date:</label>

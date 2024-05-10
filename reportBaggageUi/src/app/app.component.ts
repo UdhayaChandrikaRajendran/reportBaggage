@@ -135,7 +135,6 @@ export class AppComponent implements OnInit {
 
   showMandatoryError() {
     Object.keys(this.reactiveForm.controls).forEach(key => {
-
       const controlErrors = this.reactiveForm.get(key)?.errors;
       if (controlErrors != null) {
         Object.keys(controlErrors).forEach(keyError => {
@@ -145,19 +144,25 @@ export class AppComponent implements OnInit {
         });
       }
     });
-
+    if (this.formErrror.length > 3) {
+      this.formErrror = [];
+      this.formErrror.push("Enter complete details for all the fields")
+    }
+    if (this.formErrror.length === 0 && this.reactiveForm.invalid) {
+      this.formErrror.push("Enter all the details for every items")
+    }
   }
   compareLocationWithData(control: AbstractControl): void {
     const origin = control.get('origin');
     const departure = control.get('departure');
 
-    if (!this.infos?.includes(origin?.value)) {
+    if (origin?.value && !this.infos?.includes(origin?.value)) {
       this.reactiveForm.setErrors({ 'select correct Origin': true });
       this.formErrror?.push('select correct Origin');
     }
 
 
-    if (!this.infos?.includes(departure?.value)) {
+    if (departure?.value && !this.infos?.includes(departure?.value)) {
       this.formErrror?.push('select correct departure');
       this.reactiveForm.setErrors({ 'select correct departure': true });
 
@@ -168,7 +173,7 @@ export class AppComponent implements OnInit {
   compareOriginDeparture(control: AbstractControl): ValidationErrors | null {
     const origin = control.get('origin');
     const departure = control.get('departure');
-    if (origin?.value === departure?.value) {
+    if (origin?.value && departure?.value && origin?.value === departure?.value) {
       return { 'samelocation': true };
     }
     return null;
