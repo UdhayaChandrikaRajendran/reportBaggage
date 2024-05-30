@@ -28,15 +28,15 @@
                 <!-- <div *ngIf="reactiveForm.control['date'].errors?.['required']">Date is required.</div> -->
                 <label for=" date" class="form-label">Travel date:</label>
               
-                <input id="requestdate" type="date" class="form-control" formControlName="date" required minlength="1"
-                  maxlength="250" class="form-control form-control-sm" [max]="maxDate | date:'yyyy-MM-dd'" />
+                <input id="requestdate" type="date" formControlName="date" required minlength="1"
+                  maxlength="250" class="form-control form-control-sm dateField" [max]="maxDate | date:'yyyy-MM-dd'" />
               </div>
             </div>
             <div class="row">
               <div class="col mb-2">
                 <label for="name" class="form-label">Origin From:</label>
                 <input list="browsers1" name="browser1" formControlName="origin" autocomplete="on"
-                  class="form-control form-control-sm">
+                  class="form-control form-control-sm fromAirport">
                 <datalist id="browsers1">
                   <option *ngFor="let item of airportData$ | async" [value]="item.airport.name">
                 </datalist>
@@ -46,7 +46,7 @@
               <div class="col mb-2">
                 <label for="name" class="form-label">Departure to:</label>
                 <input list="browsers" name="browser" formControlName="departure" oninput="validity.valid||(value='');"
-                  class="form-control form-control-sm">
+                  class="form-control form-control-sm toAirport">
                 <datalist id="browsers">
                   <option *ngFor="let item of airportData$ | async" [value]="item.airport.name">
                 </datalist>
@@ -56,7 +56,7 @@
             <div class="row">
               <div class="col mb-2">
                 <label for="itemCount" class="form-label">No of Baggage:</label>
-                <input type="number" formControlName="baggage" class="form-control form-control-sm" min="1" step="1"
+                <input type="number" formControlName="baggage" class="form-control form-control-sm baggageNo" min="1" step="1"
                   oninput="validity.valid||(value='');">
               </div>
             </div>
@@ -71,8 +71,8 @@
                     <div style="color: red; font-size: 15px; font-weight: bold;"> *Please declare the cost in the same
                       currency.
                       <select name="currency1" id="currency1" formControlName="currency"
-                        class="form-control form-control-sm">
-                        <option *ngFor="let item of currencyFormat$ | async" [value]="item">{{item}}</option>
+                        class="form-control form-control-sm currencyInput">
+                        <option class="optionList" *ngFor="let item of currencyFormat$ | async" [value]="item">{{item}}</option>
                       </select>
                     </div>
                   </div>
@@ -81,14 +81,14 @@
                 <div *ngFor="let u of $any(items.controls); index as i">
                   <div class="span12 td1">
                     <div class="span1"> <label class="control-label" for="item1">Item: </label> <input id="item1"
-                        class="form-control" name="item1" type="text" [formControl]="$any(u.controls['item'])"> </div>
+                        class="form-control itemName" name="item1" type="text" [formControl]="$any(u.controls['item'])"> </div>
                     <div class="span1"> <label class="control-label" for="desc1">Quantity: </label>
-                      <input id="desc1" onlyNumber min="1" class="form-control" name="desc1" type="number"
+                      <input id="desc1" onlyNumber min="1" class="form-control quantity" name="desc1" type="number"
                         [formControl]="$any(u.controls['quantity'])" oninput="validity.valid||(value='');">
                     </div>
 
                     <div class="span1"> <label class="control-label" for="cost1">Cost: </label>
-                      <input id="cost1" type="number" class="form-control" name="cost1" (change)="calculate_cost()"
+                      <input id="cost1" type="number" class="form-control cost" name="cost1" (change)="calculate_cost()"
                         min="0" [formControl]="$any(u.controls['cost'])"
                         oninput="value == '' ? value = 0 : value < 0 ? value = value * -1 : false">
 
@@ -114,7 +114,7 @@
             </div>
             <div class="row">
               <div class="col mb-2 d-grid">
-                <button type="button" class="btn btn-sm btn-primary" (click)="validate()">Submit</button>
+                <button type="button" class="btn btn-sm btn-primary submit" (click)="validate()">Submit</button>
               </div>
             </div>
           </form>

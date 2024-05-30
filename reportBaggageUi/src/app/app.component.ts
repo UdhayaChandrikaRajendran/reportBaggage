@@ -65,7 +65,6 @@ export class AppComponent implements OnInit {
         const keys = Object.keys(response);
         let locationList = keys.map(key => response[key]);
         this.infos = locationList.map(element => element.airport.name);
-        console.log(this.infos);
       });
     this.currencyFormat$ = this.dataService.getcurrencyFormat().pipe(
       map(response => {
@@ -108,10 +107,10 @@ export class AppComponent implements OnInit {
   }
   public validate(): void {
     this.formErrror = [];
-    this.showMandatoryError();
     this.compareLocationWithData(this.reactiveForm);
     this.formSubmit = true;
-    if (this.reactiveForm.errors && this.reactiveForm.errors['samelocation']) this.formErrror?.push('select Different origin and Departure')
+    if (this.reactiveForm.errors && this.reactiveForm.errors['samelocation']) this.formErrror?.push('select Different origin and Departure');
+    this.showMandatoryError();
     if (this.reactiveForm.valid) {
       this.formValid = true;
       this.user = this.reactiveForm.value;
@@ -152,10 +151,7 @@ export class AppComponent implements OnInit {
     if (departure?.value && !this.infos?.includes(departure?.value)) {
       this.formErrror?.push('select correct departure');
       this.reactiveForm.setErrors({ 'select correct departure': true });
-
     }
-
-
   }
   compareOriginDeparture(control: AbstractControl): ValidationErrors | null {
     const origin = control.get('origin');
